@@ -1,0 +1,71 @@
+{% extends '@App/base.html.twig' %}
+
+{% block body %}
+    <div id="wrapper">
+        <div id="container">
+            <div id="welcome">
+                <h1>TOP 10 Кинопоиска</h1>
+            </div>
+            <div id="selector">
+                <label for="datepicker">Дата:</label>
+                <select id="datepicker" onchange="window.location = '{{ url('datetop') }}?date=' + this.value">
+                    {% set selected_date = app.request.query.get('date', date().format('Y-m-d')) %}
+                    {% set current_date = date('now').format('Y-m-d') %}
+                    <option disabled {% if selected_date is same as(null) or top|length is same as(0) %} selected {% endif %}>Выберите дату</option>
+                    <option value="{{ current_date }}" {% if current_date is same as(selected_date) %} selected {% endif %}>Сегодня</option>
+                    {% for date in dateList %}
+                        {% set value = date.format('Y-m-d') %}
+                        <option value="{{ value }}" {% if value is same as(selected_date) %} selected {% endif %}>{{ date.format('d.m.Y') }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="top">
+                {% if top|length is same as(0) %}
+                    Нет данных за указанную дату
+                {% else %}
+                    <table>
+                        <tr>
+                            <th>
+                                Позиция
+                            </th>
+                            <th>
+                                Название
+                            </th>
+                            <th>
+                                Год выпуска
+                            </th>
+                            <th>
+                                Рейтинг
+                            </th>
+                            <th>
+                                Количество проголосовавших
+                            </th>
+                        </tr>
+                        {% for movie in top %}
+                            <tr>
+                                <td>
+                                    {{ movie.position }}
+                                </td>
+                                <td>
+                                    {{ movie.russainName }}
+                                    {% if movie.originalName is not same as(null) %}
+                                        ({{ movie.originalName }})
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ movie.year }}
+                                </td>
+                                <td>
+                                    {{ movie.rating }}
+                                </td>
+                                <td>
+                                    {{ movie.votersCount }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
