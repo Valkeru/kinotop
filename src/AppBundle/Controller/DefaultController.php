@@ -53,10 +53,12 @@ class DefaultController extends Controller
             $top = $repo->getAllForCurrentDay();
             $repo->resetQueryBuilder();
 
-            try {
-                $this->cache->set($redisKey, $top, self::CACHE_LIFETIME);
-            } catch (\Exception | \Psr\SimpleCache\InvalidArgumentException $exception) {
-                $this->logger->error($exception);
+            if (\count($top) !== 0) {
+                try {
+                    $this->cache->set($redisKey, $top, self::CACHE_LIFETIME);
+                } catch (\Exception | \Psr\SimpleCache\InvalidArgumentException $exception) {
+                    $this->logger->error($exception);
+                }
             }
         }
 
@@ -94,12 +96,13 @@ class DefaultController extends Controller
             $top = $repo->getAllByDate($date);
             $repo->resetQueryBuilder();
 
-            try {
-                $this->cache->set($date->format('Y-m-d'), $top, self::CACHE_LIFETIME);
-            } catch (\Exception | \Psr\SimpleCache\InvalidArgumentException $exception) {
-                $this->logger->error($exception);
+            if (\count($top) !== 0) {
+                try {
+                    $this->cache->set($date->format('Y-m-d'), $top, self::CACHE_LIFETIME);
+                } catch (\Exception | \Psr\SimpleCache\InvalidArgumentException $exception) {
+                    $this->logger->error($exception);
+                }
             }
-
         }
 
         return $this->render('@App/default/index.html.twig', [
