@@ -4,10 +4,12 @@ namespace AppBundle\Command;
 
 use AppBundle\Entity\Movie;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class KinopoiskGetDataCommand
@@ -25,23 +27,25 @@ class KinopoiskGetDataCommand extends ContainerAwareCommand
      */
     private $entityManager;
 
+    private $logger;
+
     /**
      * KinopoiskGetDataCommand constructor.
      *
      * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         parent::__construct();
         $this->entityManager = $entityManager;
+        $this->logger        = $logger;
     }
 
     protected function configure(): void
     {
         $this->setName('kinopoisk:get-data')
             ->setDescription('Get TOP-10 from Kinopoisk rating')
-            ->addOption('date', 'd', InputOption::VALUE_REQUIRED, 'Date for selection in yyyy-mm-dd format', new \DateTime())
-        ;
+            ->addOption('date', 'd', InputOption::VALUE_REQUIRED, 'Date for selection in yyyy-mm-dd format', new \DateTime());
     }
 
     /**
@@ -72,6 +76,17 @@ class KinopoiskGetDataCommand extends ContainerAwareCommand
         ]);
 
         $data = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+
+        if ($code !== Response::HTTP_OK) {
+            $this->logger->error(sprintf(
+                'Request failed. Expected response code %d, actual code is %d',
+                Response::HTTP_OK, $code
+            ));
+
+            return;
+        }
 
         $document = new \DOMDocument();
         $document->loadHTML($data, LIBXML_NOERROR);

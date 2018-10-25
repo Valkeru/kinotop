@@ -1,6 +1,6 @@
 Запуск проекта:
 ```bash
-composer install
+composer install --no-interaction
 docker-compose up -d
 php bin/console server:start
 ```
